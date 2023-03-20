@@ -26,8 +26,9 @@ char serial_buf[SERIAL_BUFFER_SIZE];
 #define STATUS_ABORTING 3
 int status;
 
-void start_sm(PIO pio, uint sm, uint dma_chan){
+void start_sm(PIO pio, uint sm, uint dma_chan, uint offset){
 	pio_sm_restart(pio, sm);
+	pio_sm_exec(pio, sm, pio_encode_jmp(offset));
 
 	dma_channel_config dma_config = dma_channel_get_default_config(dma_chan);
 	channel_config_set_read_increment(&dma_config, true);
@@ -90,7 +91,7 @@ int main(){
 		else if(strncmp(serial_buf, "run", 3) == 0){
 			// Run
 			if(status == STATUS_OFF){
-				start_sm(pio, sm, dma_chan);
+				start_sm(pio, sm, dma_chan, offset);
 				status = STATUS_RUNNING;
 			}
 			else{
