@@ -61,7 +61,7 @@ int main(){
 	uint sm = pio_claim_unused_sm(pio, true);
 	uint dma_chan = dma_claim_unused_channel(true);
 	uint offset = pio_add_program(pio, &prawn_do_program);
-	pio_sm_config pio_config = prawn_do_program_init(pio, sm, 100.f, offset);
+	pio_sm_config pio_config = prawn_do_program_init(pio, sm, 10.f, offset);
 
 	while(1){
 		printf("> ");

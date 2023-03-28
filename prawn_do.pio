@@ -1,15 +1,13 @@
 .program prawn_do
-.side_set 1 opt
 
 .define public TRIGGER_PIN 16
 .define public OUTPUT_PIN_BASE 0
 .define public OUTPUT_WIDTH 16
 
 .wrap_target
-	out pins OUTPUT_WIDTH side 0
-	wait 1 gpio TRIGGER_PIN		; wait for trigger high (SM should usually be stalled here)
-	out pins OUTPUT_WIDTH side 1
-	wait 0 gpio TRIGGER_PIN		; wait for trigger low (SM should usually be stalled here)
+	out pins OUTPUT_WIDTH
+	wait 0 gpio TRIGGER_PIN		; wait for trigger low
+	wait 1 gpio TRIGGER_PIN		; wait for trigger high
 .wrap
 
 % c-sdk {
@@ -18,19 +16,16 @@ pio_sm_config prawn_do_program_init(PIO pio, uint state_machine, float div, uint
 								   prawn_do_OUTPUT_PIN_BASE,
 								   prawn_do_OUTPUT_WIDTH, true);
 	pio_sm_set_consecutive_pindirs(pio, state_machine, prawn_do_TRIGGER_PIN, 1, false);
-	pio_sm_set_consecutive_pindirs(pio, state_machine, 17, 1, true);
 
 	for(uint i = 0; i < prawn_do_OUTPUT_WIDTH; i++){
 		pio_gpio_init(pio, prawn_do_OUTPUT_PIN_BASE + i);
 	}
 	pio_gpio_init(pio, prawn_do_TRIGGER_PIN);
-	pio_gpio_init(pio, 17);
 
 	pio_sm_config config = prawn_do_program_get_default_config(offset);
 
 	sm_config_set_out_pins(&config, prawn_do_OUTPUT_PIN_BASE, prawn_do_OUTPUT_WIDTH);
 	sm_config_set_in_pins(&config, prawn_do_TRIGGER_PIN);
-	sm_config_set_sideset_pins(&config, 17);
 
 	sm_config_set_out_shift(&config, true, true, prawn_do_OUTPUT_WIDTH);
 	sm_config_set_in_shift(&config, false, false, 32);
