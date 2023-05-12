@@ -3,11 +3,11 @@ Raspberry Pi Pico (Prawn) Digital Outputs
 
 This is a basic array of digital outputs, designed to be used with labscript, running on the Pi Pico.
 
-The Pi Pico is programmed with a list of 16 digital outputs over serial, then outputs each element of the list to the first 16 pins, incrementing on the rising edge of a trigger (pin 17).
+The Pi Pico is programmed with a list of 16 digital outputs over serial, then outputs each element of the list to the first 16 pins, incrementing on the rising edge of a trigger (pin 16).
 
 The first element of the list is output when the run command is sent, without waiting for a trigger.
 
-The minimum trigger width depends on the wiring. On a breadboard, a pulse width of at least 1us is recommended.
+The minimum trigger width depends on the wiring and PIO frequency. On a breadboard, a pulse width of at least 1us seems to be required.
 
 Serial Interface
 ================
