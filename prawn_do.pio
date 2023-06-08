@@ -1,37 +1,50 @@
 .program prawn_do
 
-.define public TRIGGER_PIN 16
-.define public OUTPUT_PIN_BASE 0
-.define public OUTPUT_WIDTH 16
+.define public TRIGGER_PIN 16 ; hard code trigger to pin 16
+.define public OUTPUT_PIN_BASE 0 ; first pin to output from, used in C code for setup
+.define public OUTPUT_WIDTH 16 ; number of pins to output from, used in C code for setup
 
-.wrap_target
-	out pins OUTPUT_WIDTH
-	wait 0 gpio TRIGGER_PIN		; wait for trigger low
+.wrap_target ; loop automatically
+	out pins OUTPUT_WIDTH ; output first buffer entry immediately (for manual mode)
+	wait 0 gpio TRIGGER_PIN		; wait for trigger low (to avoid outputting multiple entries in a long trigger)
 	wait 1 gpio TRIGGER_PIN		; wait for trigger high
 .wrap
 
 % c-sdk {
 pio_sm_config prawn_do_program_init(PIO pio, uint state_machine, float div, uint offset){
+	// Set pin direction of output pins to outputs
 	pio_sm_set_consecutive_pindirs(pio, state_machine,
 								   prawn_do_OUTPUT_PIN_BASE,
 								   prawn_do_OUTPUT_WIDTH, true);
+	// Set pin direction of trigger pin to input
 	pio_sm_set_consecutive_pindirs(pio, state_machine, prawn_do_TRIGGER_PIN, 1, false);
 
+	// Initialize gpio for output pins
 	for(uint i = 0; i < prawn_do_OUTPUT_WIDTH; i++){
 		pio_gpio_init(pio, prawn_do_OUTPUT_PIN_BASE + i);
 	}
+	// Initialize gpio for trigger pin
 	pio_gpio_init(pio, prawn_do_TRIGGER_PIN);
 
+	// Get config for pio state machine
 	pio_sm_config config = prawn_do_program_get_default_config(offset);
 
+	// Set output pins of config to output pins
 	sm_config_set_out_pins(&config, prawn_do_OUTPUT_PIN_BASE, prawn_do_OUTPUT_WIDTH);
+	// Set input pin of config to trigger pin
 	sm_config_set_in_pins(&config, prawn_do_TRIGGER_PIN);
 
+	// Setup automatic shift on output.
+	// When 16 bits are outputted (as occurs every time the `out` instruction happens),
+	// another entry is pulled from the fifo (the fifo is then refilled via dma).
 	sm_config_set_out_shift(&config, true, true, prawn_do_OUTPUT_WIDTH);
+	// Disable automatic shift on input (no input is done anyway).
 	sm_config_set_in_shift(&config, false, false, 32);
 
+	// Config pio clock to be divided down. This works a bit better on breadboards.
 	sm_config_set_clkdiv(&config, div);
 
+	// Complete initialization of state machine.
 	pio_sm_init(pio, state_machine, offset, &config);
 }
 %}

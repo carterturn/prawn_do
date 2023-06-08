@@ -28,3 +28,8 @@ Wiring
 Pins 0-15 of the Pi Pico are the digital outputs. They correspond to each bit of the unsigned integers added via the add command.
 
 Pin 16 is the trigger. On rising edge, the next integer is sent to the outputs.
+
+Design Notes
+============
+
+The general approach of this program is to use a single CPU core to prepare a large memory buffer of unsigned, 16 bit integers, then pass this buffer to the programmable IO via direct memory access. The PIO program is quite simple, with a single out instruction occuring per trigger (on the rising edge). The autopull feature is used to transfer data from the PIO fifo to the output shift register after each out instructuion. The DMA then refills the fifo as necessary.
